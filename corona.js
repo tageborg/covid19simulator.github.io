@@ -47,7 +47,7 @@ const metrics = {
 	infected: { label: "Smittade från start" },
 	dead: { label: "Döda från start" },
 	enteredIntubationLight: { label: "Nya lätta fall med syrgas" },
-	enteredIntubationHard: { label: "Nya svåra fall med intubation" },
+	enteredIntubationHard: { label: "Nya svåra fall med syrgas" },
 	enteredIntubationMortal: { label: "Nya dödstdömda fall med syrgas (nekade respirator)" },
 	enteredRespirator: { label: "Nya i respirator" },
 	respiratorsUsed: { label: "Respiratorer i användning" },
