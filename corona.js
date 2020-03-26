@@ -17,6 +17,8 @@ const DEFAULTS = {
 	avgSurvivorIntubationDays: 3,
 };
 
+const MAX_R0 = 10;
+
 const sections = {
 	generic: { label: 'Allmänt' },
 	mortality: { label: 'Dödlighet och sjukvårdsbehov' },
@@ -27,18 +29,18 @@ const sections = {
 const inputs = {
 	//days: { label: "Antal dagar", section: 'generic', isInteger: true },
 	population: { label: "Befolkning", section: 'generic', isInteger: true },
-	r0: { label: "Spridningsfaktor R0", section: 'generic', },
-	avgInfectTime: { label: "För att smitta annan", section: 'time', isInteger: true },
-	mortalityWithCare: { label: "Dödlighet (%) med intensivvård", section: 'mortality' },
-	needRespirator: { label: "% som behöver respirator", section: 'mortality' },
-	needIntubation: { label: "% som enbart behöver syrgas", section: 'mortality' },
-	avgTimeToIntubation: { label: "Till syrgas", section: 'time', isInteger: true  },
-	avgTimeToRespirator: { label: "Till respirator", section: 'time', isInteger: true  },
-	avgTimeToDeath: { label: "Till död (med vård)", section: 'time', isInteger: true  },
+	r0: { label: "Spridningsfaktor R0", section: 'generic', max: MAX_R0 },
+	avgInfectTime: { label: "För att smitta annan", section: 'time', isInteger: true, min: 1 },
+	mortalityWithCare: { label: "Dödlighet (%) med intensivvård", section: 'mortality' ,max: 100 },
+	needRespirator: { label: "% som behöver respirator", section: 'mortality', max: 100 },
+	needIntubation: { label: "% som enbart behöver syrgas", section: 'mortality', max: 100 },
+	avgTimeToIntubation: { label: "Till syrgas", section: 'time', isInteger: true, min: 1  },
+	avgTimeToRespirator: { label: "Till respirator", section: 'time', isInteger: true, min: 1  },
+	avgTimeToDeath: { label: "Till död (med vård)", section: 'time', isInteger: true, min: 1  },
 	respirators: { label: "Antal respiratorer", section: 'capacity', isInteger: true },
-	avgRespiratorDays: { label: "Tid i respirator (överlevare)", section: 'time', isInteger: true  },
+	avgRespiratorDays: { label: "Tid i respirator (överlevare)", section: 'time', isInteger: true, min: 1  },
 	intubationSlots: { label: "Platser för syrgas", section: 'capacity', isInteger: true },
-	avgSurvivorIntubationDays: { label: "Med syrgas (ej respirator-behov)", section: 'time', isInteger: true  },
+	avgSurvivorIntubationDays: { label: "Med syrgas (ej respirator-behov)", section: 'time', isInteger: true, min: 1  },
 };
 
 const metrics = {
@@ -104,9 +106,9 @@ actionsContainer.innerHTML = actions.map((obj, idx) => {
 			<span style="font-weight: bold; color: ${obj.color}">Åtgärd ${idx + 1}</span>
 			<div style="border-radius: 5px; border-style: solid; border-width: 1px; border-color: gray; width: min-content; padding: 5px; white-space: nowrap; background: white;">			
 				<label for="${name('r0')}">R0 efter åtgärd</label><br>
-				<input value="${DEFAULTS.r0}" type="number" id="${name('r0')}" name="${name('r0')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>
+				<input min="0" max="${MAX_R0}" value="${DEFAULTS.r0}" type="number" id="${name('r0')}" name="${name('r0')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>
 				<label for="${name('day')}">Dag för åtgärden</label><br>
-				<input value="${(idx + 1) * 50}" type="number" id="${name('day')}" name="${name('day')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>				
+				<input step="1" min="0" value="${20 + (idx + 1) * 40}" type="number" id="${name('day')}" name="${name('day')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>				
 				<span style="font-weight: bold">Aktivera<span> <input type="checkbox" id="${name('active')}" name="${name('active')}" style=""><br>				
 			</div>
 		</div>
@@ -114,10 +116,10 @@ actionsContainer.innerHTML = actions.map((obj, idx) => {
 }).join('');
 
 _.entries(sections).forEach(([sectionKey, section]) => {
-	const html = _.entries(inputs).filter(([key, { section }]) => section === sectionKey).map(([key, { label }]) => `
+	const html = _.entries(inputs).filter(([key, { section }]) => section === sectionKey).map(([key, { label, min, max, isInteger }]) => `
 		<div>
 			<label for="${key}">${label}</label><br>
-			<input type="number" id="${key}" name="${key}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>
+			<input min="${min || 0}" ${isInteger ? 'step="1"' : ''} ${max ? `max="${max}"` : ''} type="number" id="${key}" name="${key}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>
 		</div>
 	`).join('');
 	inputContainer.innerHTML += `
@@ -144,7 +146,7 @@ const getInputsInternal = () => {
 		if (isNaN(res)) {
 			return undefined;
 		}
-		return v.isInteger ? Math.floor(res) : res;
+		return res;
 	});
 	return res;
 };
@@ -197,22 +199,49 @@ const onChanged = () => {
 		setActions(lastValidActions);
 	}
 	const d = getInputsInternal();
-	if(_.findIndex(_.values(d), (v) => !v || (_.isNumber(v) && v <= 0)) >= 0) {
-		return reset();
-	}
-	const valid =
-		d.avgInfectTime < d.avgTimeToDeath &&
-		d.avgTimeToRespirator <  d.avgTimeToDeath &&
-		d.avgTimeToIntubation < d.avgTimeToRespirator &&
-		d.needRespirator >= d.mortalityWithCare &&
-		d.needRespirator + d.needIntubation <= 100 &&
-		d.r0 <= 10;
-	if (!valid) {
-		return reset();
-	}
 	const newActions = getActionsInternal();
-	if (newActions.find(({ r0, day }) => !r0 || r0 > 10 || !day)) {
+
+	const orgD = _.clone(d);
+	const orgActions = _.clone(newActions);
+
+	if(_.findIndex(_.values(d), (v) => v === undefined) >= 0) {
 		return reset();
+	}
+	_.forOwn(d, (val, key) => {
+		const settings = inputs[key];
+		let newVal = val;
+		if(settings.isInteger) {
+			newVal = Math.floor(newVal);
+		}
+		if(newVal < 0) {
+			newVal = 0;
+		}
+		if(settings.min && newVal < settings.min) {
+			newVal = settings.min;
+		}
+		if(settings.max && newVal > settings.max) {
+			newVal = settings.max;
+		}
+		d[key] = newVal;
+	});
+	d.avgTimeToDeath = Math.max(d.avgTimeToDeath, d.avgInfectTime + 1);
+	d.avgTimeToRespirator = Math.max(d.avgTimeToRespirator, d.avgTimeToIntubation + 1);
+	d.avgTimeToDeath = Math.max(d.avgTimeToDeath, d.avgTimeToRespirator + 1);
+	d.needRespirator = Math.max(d.needRespirator, d.mortalityWithCare);
+	d.needIntubation = Math.min(d.needIntubation, 100 - d.needRespirator);
+
+	if (newActions.find(({ r0, day }) => isNaN(r0) || isNaN(day))) {
+		return reset();
+	}
+	newActions.forEach((action) => {
+		action.r0 = Math.min(Math.max(action.r0, 0), MAX_R0);
+		action.day = Math.floor(Math.max(action.day, 0));
+	});
+	if(!_.isEqual(d, orgD)) {
+		setInputs(d);
+	}
+	if(!_.isEqual(newActions, orgActions)) {
+		setActions(newActions);
 	}
 	lastValidInputs = d;
 	lastValidActions = newActions;

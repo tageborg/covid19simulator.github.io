@@ -93,7 +93,7 @@
 
 <body>
 	<!-- border-radius: 5px; border-style: solid; border-width: 1px; border-color: gray; -->
-	<div style="color: red; font-weight: bold;">OBS! Denna simulering är INTE vetenskapligt framtagen och innehåller förenklingar samt eventuellt felaktigheter!</div>
+	<div style="color: red; font-weight: bold;">OBS! Denna simulering är inte vetenskapligt framtagen och kan innehålla felaktigheter</div>
 	<div id="inputContainer" style="width: min-content; padding: 5px; white-space: nowrap; float: left; "></div>
 	<div id="selectContainer" style="display: inline-block; margin-top: 20px;"></div>
 	<a id="copyLink" target="_blank" style="white-space: nowrap;">Kopiera som URL</a>
@@ -108,9 +108,23 @@
 		<button id="recalculateBtn" class="example_b">Räkna om</button>
 		<button id="resetBtn" class="example_b">Återställ</button>
 	</div>
-	<div style="max-width: 600px;margin: 0 auto;">
-		<h2>Förenklingar och kända felaktigheter</h2>
+	<div style="max-width: 1000px; margin: 0 auto;">
+		<h2>Förklaringar</h2>
 		<ul>
+			<li>
+				<span style="font-weight: bold">Smittfaktor R0</span> - hur många personer i genomsnitt som varje smittad person i sin tur smittar innan någon immunitet uppnåts. För Covid-19 beräknas detta värde vara mellan 2 - 2.5.
+			</li>
+			<li>
+				<span style="font-weight: bold">Åtgärder</span> - gör det möjligt att simulera "åtgärder" som förändrar smittspridningen R0 vid valbar dag.
+			</li>
+
+		</ul>
+
+		<h2>Förenklingar</h2>
+		<ul>
+			<li>
+				Man förutsätts bli immun, människor kan alltså inte smittas två gånger.
+			</li>
 			<li>
 				Alla patienter förutsätts först behöva syrgas och sedan respirator. Det finnas alltså inga patienter som direkt hamnar i respirator.
 			</li>
