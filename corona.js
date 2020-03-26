@@ -336,7 +336,7 @@ const drawDiagram = ({ data, firstDim, secondDim }) => {
 	if (chart) {
 		chart.data = lineChartData;
 		chart.options.options;
-		chart.update();
+		chart.update({ duration: 0 });
 		return;
 	}
 
