@@ -179,7 +179,7 @@
 			Om genomsnittlig <b>Tid för att smitta annan</b> är t.ex. <b>6</b> och R0 är <b>2.2</b> så sprids smittan ut jämt mellan dagarna 1 - 11 framåt.
 		</p>
 		<p>
-			Så om det finns <b>1000</b> personer som smittas på dag <b>50</b> så kommer antalet personer som smittats på dag <b>54</b> av dom som smittats dag att <b>50</b> vara:
+			Så om det finns <b>1000</b> personer som smittas på dag <b>50</b> så kommer antalet personer som smittats på dag <b>54</b> av dom som smittats dag <b>50</b> att vara:
 		</p>
 		<p>
 			<i>(1000 * 2.2 * (andel av befolkningen som ännu inte smittats dag 54)) / 11</i>
@@ -188,15 +188,21 @@
 			De smittade som behöver sjukvård (<b>% som behöver respirator</b> + <b>% som enbart behöver syrgas</b>) flyttas till syrgas efter <b>Till syrgas</b> dagar eller dör den dagen om det inte finns plats (en av förenklingarna).
 		</p>
 		<p>
-			Sedan tas patienter bort från syrgas om dom tillhör <b>% som enbart behöver syrgas</b> efter värdet man ställt in - eller stannar kvar tills dom flyttas till respirator. Finns ingen respirator stannar dom med syrgas och är där lika länge som dom som får syrgas, och dör sedan (förenkling).
+			Sedan tas patienter bort från syrgas om dom tillhör <b>% som enbart behöver syrgas</b> efter värdet man ställt in - eller stannar kvar tills dom flyttas till respirator. Finns ingen respirator stannar dom med syrgas och dör efter lika lång tid som det tar för de som dör i respirator (förenkling).
 		</p>
 		<p>
 			De som behöver respirator stannar fram tills <b>Till död (med vård)</b> dagar och resten, som överlever - stannar i <b>Tid i respirator (överlevare)</b> dagar. Dessa behöver inte syrgas efteråt (en annan förenkling).
 		</p>
 		<p>
-		Smittförloppet kan styras med <i>åtgärderna</i> så om t.ex. regeringen bestämmer att alla ska stanna hemma på dag 100 så kan man aktivera en av dom fyra <i>åtgärdena</i> då och ändra R0 till t.ex. <b>0.5</b> vilket betyder att R0 alltså är 0.5 i simuleringen fr.o.m. dag <b>100</b>.
+			Smittförloppet kan styras med <i>åtgärderna</i> så om t.ex. regeringen bestämmer att alla ska stanna hemma på dag 100 så kan man aktivera en av dom fyra <i>åtgärdena</i> då och ändra R0 till t.ex. <b>0.5</b> vilket betyder att R0 alltså är 0.5 i simuleringen fr.o.m. dag <b>100</b>.
 		</p>
+		<h2>Källkod</h2>
+		<p>
+			Koden med kommentarer går att se i din webbläsare (tryck F12) och finns även som open source här: <a target="_blank" href="https://github.com/covid19simulator/covid19simulator.github.io">https://github.com/covid19simulator/covid19simulator.github.io</a>
+		</p>
+		<p>
 
+		</p>
 	</div>
 
 </body>
