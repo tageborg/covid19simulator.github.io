@@ -1,5 +1,7 @@
 addEventListener("load", () => {
 
+const isMobile = () => innerWidth < 1000;
+
 const DEFAULTS = {
 	days: 300,
 	population: 10000000,
@@ -259,9 +261,8 @@ selects.map((__, idx) => {
 });
 
 const resize = () => {
-	const isMobile = innerWidth < 1000;
-	graphContainer.style.width = isMobile ? '100%' : 'auto';
-	inputContainer.style.float = isMobile ? 'none' : 'left';
+	graphContainer.style.width = isMobile() ? '100%' : 'auto';
+	inputContainer.style.float = isMobile() ? 'none' : 'left';
 	recalculate();
 };
 
@@ -296,46 +297,52 @@ const drawDiagram = ({ data, firstDim, secondDim }) => {
 		}]
 	};
 
+	const aspectRatio = isMobile() ? 1.5 : 2.5;
+
+	options = {
+		responsive: true,
+		maintainAspectRatio: true,
+		aspectRatio,
+		hoverMode: 'index',
+		stacked: false,
+		tooltips: {
+		mode: 'index',
+			intersect: false,
+		},
+		title: {
+			display: true,
+				text: 'Covid-19 prognos'
+		},
+		scales: {
+			yAxes: [{
+				type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+				display: true,
+				position: 'left',
+				id: 'y-axis-1',
+			}, {
+				type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+				display: true,
+				position: 'right',
+				id: 'y-axis-2',
+
+				// grid line settings
+				gridLines: {
+					drawOnChartArea: false, // only want the grid lines for one axis to show up
+				},
+			}],
+		}
+	};
+
 	if (chart) {
 		chart.data = lineChartData;
+		chart.options.options;
 		chart.update();
 		return;
 	}
 
 	chart = Chart.Line(ctx, {
 		data: lineChartData,
-		options: {
-			responsive: true,
-			aspectRatio: 2.5,
-			hoverMode: 'index',
-			stacked: false,
-			tooltips: {
-				mode: 'index',
-				intersect: false,
-			},
-			title: {
-				display: true,
-				text: 'Covid-19 prognos'
-			},
-			scales: {
-				yAxes: [{
-					type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-					display: true,
-					position: 'left',
-					id: 'y-axis-1',
-				}, {
-					type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
-					display: true,
-					position: 'right',
-					id: 'y-axis-2',
-
-					// grid line settings
-					gridLines: {
-						drawOnChartArea: false, // only want the grid lines for one axis to show up
-					},
-				}],
-			}
-		},
+		options,
 	});
 
 };
