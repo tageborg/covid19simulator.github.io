@@ -46,8 +46,14 @@ const inputs = {
 };
 
 const metrics = {
-	newDead: { label: "Döda per dag" },
-	newInfections: { label: "Smittade per dag" },
+	newDead: {
+		label: "Döda per dag",
+		finalize: (obj, prev) => Math.floor(obj.dead) - Math.floor(prev.dead),
+	},
+	newInfections: {
+		label: "Smittade per dag",
+		finalize: (obj, prev) => Math.floor(obj.infected) - Math.floor(prev.infected),
+	},
 	infected: { label: "Smittade från start" },
 	dead: { label: "Döda från start" },
 	enteredIntubationLight: { label: "Nya lätta fall med syrgas" },
@@ -276,7 +282,17 @@ class DayData
 
 let chart;
 
-const drawDiagram = ({ data, firstDim, secondDim }) => {
+const drawDiagram = ({ prevData, data, firstDim, secondDim }) => {
+	const getDataArr = ({ field }) => {
+		const { finalize } = metrics[field];
+		return data.map((obj, idx) => {
+			if(finalize) {
+				const prev = idx ? data[idx - 1] : prevData;
+				return finalize(obj, prev);
+			}
+			return Math.floor(obj[field]);
+		});
+	};
 	var ctx = document.getElementById('canvas').getContext('2d');
 	var lineChartData = {
 		labels: data.map(d => d.label.toString()),
@@ -285,14 +301,14 @@ const drawDiagram = ({ data, firstDim, secondDim }) => {
 			borderColor: window.chartColors.blue,
 			backgroundColor: window.chartColors.blue,
 			fill: false,
-			data: data.map(d => Math.round(d[firstDim.field])),
+			data: getDataArr(firstDim),
 			yAxisID: 'y-axis-1',
 		}, {
 			label: secondDim.label,
 			borderColor: window.chartColors.red,
 			backgroundColor: window.chartColors.red,
 			fill: false,
-			data: data.map(d => Math.round(d[secondDim.field])),
+			data: getDataArr(secondDim),
 			yAxisID: 'y-axis-2'
 		}]
 	};
@@ -381,7 +397,7 @@ const recalculate = () => {
 	// Hur stor andel som behöver syrgas, det inkluderar dom som bara behöver syrgas + dom som behöver respirator
 	const needIntubationFactor = (d.needRespirator + d.needIntubation) / 100;
 
-	// Hur stor andel av som som börjar använda syrgas som senare kommer att behöva respirator
+	// Hur stor andel av dom som som börjar använda syrgas som senare kommer att behöva respirator
 	const intubatorHardFactor = d.needRespirator / (d.needRespirator + d.needIntubation);
 
 	for(var i = 1; i < days; i++) {
@@ -497,6 +513,7 @@ const recalculate = () => {
 		endIdx = perDay.length - 1;
 	}
 	drawDiagram({
+		prevData: startIdx ? perDay[startIdx - 1] : new DayData(),
 		data: perDay.slice(startIdx, endIdx + 1),
 		firstDim: getDimension(0),
 		secondDim: getDimension(1),
