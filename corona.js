@@ -31,7 +31,7 @@ const sections = {
 const inputs = {
 	//days: { label: "Antal dagar", section: 'generic', isInteger: true },
 	population: { label: "Befolkning", section: 'generic', isInteger: true },
-	r0: { label: "Spridningsfaktor R0", section: 'generic', max: MAX_R0 },
+	r0: { label: "Spridningsfaktor R0", section: 'generic', max: MAX_R0, step: 0.1 },
 	avgInfectTime: { label: "För att smitta annan", section: 'time', isInteger: true, min: 1 },
 	mortalityWithCare: { label: "Dödlighet (%) med intensivvård", section: 'mortality' ,max: 100 },
 	needRespirator: { label: "% som behöver respirator", section: 'mortality', max: 100 },
@@ -108,7 +108,7 @@ actionsContainer.innerHTML = actions.map((obj, idx) => {
 			<span style="font-weight: bold; color: ${obj.color}">Åtgärd ${idx + 1}</span>
 			<div style="border-radius: 5px; border-style: solid; border-width: 1px; border-color: gray; width: min-content; padding: 5px; white-space: nowrap; background: white;">			
 				<label for="${name('r0')}">R0 efter åtgärd</label><br>
-				<input min="0" max="${MAX_R0}" value="${DEFAULTS.r0}" type="number" id="${name('r0')}" name="${name('r0')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>
+				<input step="0.1" min="0" max="${MAX_R0}" value="${DEFAULTS.r0}" type="number" id="${name('r0')}" name="${name('r0')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>
 				<label for="${name('day')}">Dag för åtgärden</label><br>
 				<input step="1" min="0" value="${20 + (idx + 1) * 40}" type="number" id="${name('day')}" name="${name('day')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>				
 				<span style="font-weight: bold">Aktivera<span> <input type="checkbox" id="${name('active')}" name="${name('active')}" style=""><br>				
@@ -118,10 +118,10 @@ actionsContainer.innerHTML = actions.map((obj, idx) => {
 }).join('');
 
 _.entries(sections).forEach(([sectionKey, section]) => {
-	const html = _.entries(inputs).filter(([key, { section }]) => section === sectionKey).map(([key, { label, min, max, isInteger }]) => `
+	const html = _.entries(inputs).filter(([key, { section }]) => section === sectionKey).map(([key, { label, min, max, isInteger, step }]) => `
 		<div>
 			<label for="${key}">${label}</label><br>
-			<input min="${min || 0}" ${isInteger ? 'step="1"' : ''} ${max ? `max="${max}"` : ''} type="number" id="${key}" name="${key}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>
+			<input min="${min || 0}" ${isInteger ? 'step="1"' : (step ? `step="${step}"`: '')} ${max ? `max="${max}"` : ''} type="number" id="${key}" name="${key}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>
 		</div>
 	`).join('');
 	inputContainer.innerHTML += `
