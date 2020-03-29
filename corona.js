@@ -30,8 +30,8 @@ const sections = {
 
 const inputs = {
 	//days: { label: "Antal dagar", section: 'generic', isInteger: true },
-	population: { label: "Befolkning", section: 'generic', isInteger: true },
-	r0: { label: "Spridningsfaktor R0", section: 'generic', max: MAX_R0, step: 0.1 },
+	population: { label: "Befolkning", section: 'generic', isInteger: true, min: 1 },
+	r0: { label: "Smittsamhet R0", section: 'generic', max: MAX_R0, step: 0.1 },
 	avgInfectTime: { label: "För att smitta annan", section: 'time', isInteger: true, min: 1 },
 	mortalityWithCare: { label: "Dödlighet (%) med intensivvård", section: 'mortality' ,max: 100 },
 	needRespirator: { label: "% som behöver respirator", section: 'mortality', max: 100 },
@@ -113,7 +113,7 @@ actionsContainer.innerHTML = actions.map((obj, idx) => {
 		<div style="display: inline-block; vertical-align: top;">
 			<span style="font-weight: bold; color: ${obj.color}">Åtgärd ${idx + 1}</span>
 			<div style="border-radius: 5px; border-style: solid; border-width: 1px; border-color: gray; width: min-content; padding: 5px; white-space: nowrap; background: white;">			
-				<label for="${name('r0')}">R0 efter åtgärd</label><br>
+				<label for="${name('r0')}">Smittsamhet efteråt</label><br>
 				<input step="0.1" min="0" max="${MAX_R0}" value="${DEFAULTS.r0}" type="number" id="${name('r0')}" name="${name('r0')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>
 				<label for="${name('day')}">Dag för åtgärden</label><br>
 				<input step="1" min="0" value="${20 + (idx + 1) * 40}" type="number" id="${name('day')}" name="${name('day')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>				
@@ -392,13 +392,13 @@ const recalculate = () => {
 	const intubatorDeadDays = respiratorDeadDays;
 
 	// Hur stor andel av dom som hamnar i respirator som dör
-	const respiratorDeadFactor = d.mortalityWithCare / d.needRespirator;
+	const respiratorDeadFactor = d.needRespirator ? d.mortalityWithCare / d.needRespirator : 0;
 
 	// Hur stor andel som behöver syrgas, det inkluderar dom som bara behöver syrgas + dom som behöver respirator
 	const needIntubationFactor = (d.needRespirator + d.needIntubation) / 100;
 
 	// Hur stor andel av dom som som börjar använda syrgas som senare kommer att behöva respirator
-	const intubatorHardFactor = d.needRespirator / (d.needRespirator + d.needIntubation);
+	const intubatorHardFactor = d.needRespirator ? d.needRespirator / (d.needRespirator + d.needIntubation) : 0;
 
 	for(var i = 1; i < days; i++) {
 		const daysAgo = (d) => (d > i ? new DayData() : perDay[i - d]);
