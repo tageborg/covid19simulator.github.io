@@ -3,20 +3,19 @@ addEventListener("load", () => {
 const isMobile = () => innerWidth < 1000;
 
 const DEFAULTS = {
-	days: 300,
-	population: 10000000,
-	r0: 2.2,
-	avgInfectTime: 6,
-	mortalityWithCare: 0.5,
-	needRespirator: 2,
-	needIntubation: 4,
-	avgTimeToIntubation: 10,
-	avgTimeToRespirator: 15,
-	avgTimeToDeath: 18,
-	respirators: 570,
-	avgRespiratorDays: 10,
-	intubationSlots: 15000,
-	avgSurvivorIntubationDays: 3,
+	"population": 10000000,
+	"r0": 1.8,
+	"avgInfectTime": 6,
+	"mortalityWithCare": 0.5,
+	"needRespirator": 2,
+	"needIntubation": 4,
+	"avgTimeToIntubation": 18,
+	"avgTimeToRespirator": 20,
+	"avgTimeToDeath": 22,
+	"respirators": 570,
+	"avgRespiratorDays": 3,
+	"intubationSlots": 10000,
+	"avgSurvivorIntubationDays": 2
 };
 
 const MAX_R0 = 10;
@@ -116,7 +115,7 @@ actionsContainer.innerHTML = actions.map((obj, idx) => {
 				<label for="${name('r0')}">Smittsamhet efteråt</label><br>
 				<input step="0.1" min="0" max="${MAX_R0}" value="${DEFAULTS.r0}" type="number" id="${name('r0')}" name="${name('r0')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>
 				<label for="${name('day')}">Dag för åtgärden</label><br>
-				<input step="1" min="0" value="${20 + (idx + 1) * 40}" type="number" id="${name('day')}" name="${name('day')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>				
+				<input step="1" min="0" value="${100 + (idx * 40)}" type="number" id="${name('day')}" name="${name('day')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>				
 				<span style="font-weight: bold">Aktivera<span> <input type="checkbox" id="${name('active')}" name="${name('active')}" style=""><br>				
 			</div>
 		</div>
@@ -201,6 +200,13 @@ setInputs(initSettings.inputs);
 let lastValidInputs = initSettings.inputs;
 let lastValidActions = initSettings.actions;
 
+let deadNow;
+
+$.getJSON('https://services5.arcgis.com/fsYDFeRKu1hELJJs/arcgis/rest/services/FOHM_Covid_19_FME_1/FeatureServer/3/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22Totalt_antal_avlidna%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&cacheHint=true', function(data) {
+	deadNow = data.features[0].attributes.value;
+	recalculate();
+});
+
 const onChanged = () => {
 	const reset = () => {
 		setInputs(lastValidInputs);
@@ -269,7 +275,7 @@ selects.map((__, idx) => {
 const resize = () => {
 	graphContainer.style.width = isMobile() ? '100%' : 'auto';
 	inputContainer.style.float = isMobile() ? 'none' : 'left';
-	recalculate();
+	setTimeout(recalculate);
 };
 
 class DayData
@@ -322,8 +328,11 @@ const drawDiagram = ({ prevData, data, firstDim, secondDim }) => {
 		hoverMode: 'index',
 		stacked: false,
 		tooltips: {
-		mode: 'index',
+			mode: 'index',
 			intersect: false,
+			callbacks: {
+				title: ([{ xLabel }]) => "Dag " + xLabel,
+			},
 		},
 		title: {
 			display: true,
@@ -363,17 +372,28 @@ const drawDiagram = ({ prevData, data, firstDim, secondDim }) => {
 
 };
 
-const drawActionBars = (startIdx, endIdx) => {
-	const visibleActions = lastValidActions.filter(a => a.active && a.day >= startIdx && a.day <= endIdx);
+const drawActionBars = (startIdx, endIdx, deadIdx) => {
+	const deadAction = { day: deadIdx, isDead: true, active: true };
+	const visibleActions = lastValidActions.concat(deadAction).filter(a => a.active && a.day >= startIdx && a.day <= endIdx);
 	const rect = canvas.getBoundingClientRect();
 	const days = (endIdx - startIdx) + 1;
-	const EXTRA = 60;
-	const width = rect.width - (1.8 * EXTRA);
-	actionBarsContainer.innerHTML = visibleActions.map(action => `
-		<div style="position: absolute; background: ${actions[action.idx].color}; width: 2px; height: 100%; top: 0px; left: ${((action.day - startIdx) / days) * width}px;"></div>
-	`).join('');
+	const { left, right } = chart.chartArea;
+	const width = (right - left) + 5;
+	actionBarsContainer.innerHTML = visibleActions.map(action => {
+		const leftPos = ((action.day - startIdx) / days) * width;
+		if (action.isDead) {
+			return `
+				<div style="pointer-events: none; position: absolute; background: #48484814; width: ${leftPos}px; height: 100%; top: 0px; left: 0px;"></div>
+				<div class="animate-flicker" style="pointer-events: none; position: absolute; background: red; width: 4px; height: 100%; top: 0px; left: ${leftPos}px;"></div>
+			`;
+			//	<div style="font-weight:bold; pointer-events: none; position: absolute; top: 20%; left: ${leftPos - 20}px; border-radius: 5px; border-style: solid; border-width: 1px; border-color: gray; width: min-content; padding: 5px; white-space: nowrap; background: white; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2)">
+			//		Idag
+			//	</div>
+		}
+		return `<div style="position: absolute; background: ${actions[action.idx].color}; width: 2px; height: 100%; top: 0px; left: ${leftPos}px;"></div>`;
+	}).join('');
 	actionBarsContainer.style.height = `${rect.height - 95}px`;
-	actionBarsContainer.style.left = `${rect.left + EXTRA}px`;
+	actionBarsContainer.style.left = `${rect.left + left}px`;
 }
 
 const recalculate = () => {
@@ -506,6 +526,7 @@ const recalculate = () => {
 	}
 	let startIdx = _.findIndex(perDay, d => d.dead >= 1);
 	let endIdx = _.findLastIndex(perDay, d => d.newDead >= 1 || d.newInfections >= 10);
+	const deadIdx = deadNow ? _.findLastIndex(perDay, d => d.dead < deadNow) : 0;
 	if(startIdx < 0 ) {
 		startIdx = 0;
 	}
@@ -518,7 +539,7 @@ const recalculate = () => {
 		firstDim: getDimension(0),
 		secondDim: getDimension(1),
 	});
-	drawActionBars(startIdx, endIdx);
+	drawActionBars(startIdx, endIdx, deadIdx);
 	const { dead, infected } = _.last(perDay);
 	infoContainer.innerHTML = [
 		{ desc: 'Döda totalt', value: Math.round(dead) },

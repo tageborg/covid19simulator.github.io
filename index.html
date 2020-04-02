@@ -76,10 +76,38 @@
   font-weight:normal;
 }
 
+@keyframes flickerAnimation {
+  0%   { opacity:1; }
+  50%  { opacity:0.25; }
+  100% { opacity:1; }
+}
+@-o-keyframes flickerAnimation{
+  0%   { opacity:1; }
+  50%  { opacity:0.25; }
+  100% { opacity:1; }
+}
+@-moz-keyframes flickerAnimation{
+  0%   { opacity:1; }
+  50%  { opacity:0.25; }
+  100% { opacity:1; }
+}
+@-webkit-keyframes flickerAnimation{
+  0%   { opacity:1; }
+  50%  { opacity:0.25; }
+  100% { opacity:1; }
+}
+.animate-flicker {
+  -webkit-animation: flickerAnimation 500ms infinite;
+  -moz-animation: flickerAnimation 500ms infinite;
+  -o-animation: flickerAnimation 500ms infinite;
+  animation: flickerAnimation 500ms infinite;
+}
+
 </style>
 	<title>Covid-19 simulator</title>
 	<script src="https://www.chartjs.org/dist/2.9.3/Chart.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.min.js"></script>
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 	<script src="./utils.js"></script>
 	<script src="./corona.js"></script>
 	<style>
@@ -112,7 +140,7 @@
 		<h2>Förklaringar</h2>
 		<ul>
 			<li>
-				<span style="font-weight: bold">Smittsamhet R0</span> - hur många personer i genomsnitt som varje smittad person i sin tur smittar innan någon immunitet uppnåts. För Covid-19 beräknas detta värde vara mellan 2 - 2.5.
+				<span style="font-weight: bold">Smittsamhet R0</span> - hur många personer i genomsnitt som varje smittad person i sin tur smittar innan någon immunitet uppnåts. För Covid-19 beräknas det vara mellan 2 - 2.5.
 			</li>
 			<li>
 				<span style="font-weight: bold">Åtgärder</span> - gör det möjligt att simulera "åtgärder" som förändrar smittspridningen R0 vid valbar dag.
@@ -122,15 +150,15 @@
 		<h2>Viktiga observationer</h2>
 		<h3>Det inte går att vänta på att tillräckligt många dör innan man agerar.</h3>
 		<p>
-			Vi tar standardinställningarna och tänker oss att <b>913</b> personer dött på dag <b>91</b>. Om i det läget regeringen kommer fram till att situationen är oacceptabel och implementerar en teoretisk super-strategi som helt stoppar spridningen <b>(R0 = 0)</b> -
-			isåfall får vi <a target="_blank" href="https://covid19simulator.github.io/?settings=eyJpbnB1dHMiOnsicG9wdWxhdGlvbiI6MTAwMDAwMDAsInIwIjoyLjIsImF2Z0luZmVjdFRpbWUiOjYsIm1vcnRhbGl0eVdpdGhDYXJlIjowLjUsIm5lZWRSZXNwaXJhdG9yIjoyLCJuZWVkSW50dWJhdGlvbiI6NCwiYXZnVGltZVRvSW50dWJhdGlvbiI6MTAsImF2Z1RpbWVUb1Jlc3BpcmF0b3IiOjE1LCJhdmdUaW1lVG9EZWF0aCI6MTgsInJlc3BpcmF0b3JzIjo1NzAsImF2Z1Jlc3BpcmF0b3JEYXlzIjoxMCwiaW50dWJhdGlvblNsb3RzIjoxNTAwMCwiYXZnU3Vydml2b3JJbnR1YmF0aW9uRGF5cyI6M30sImFjdGlvbnMiOlt7InIwIjoyLjIsImRheSI6NjAsImFjdGl2ZSI6ZmFsc2UsImlkeCI6MH0seyJyMCI6MCwiZGF5Ijo5MSwiYWN0aXZlIjp0cnVlLCJpZHgiOjF9LHsicjAiOjIuMiwiZGF5IjoxNDAsImFjdGl2ZSI6ZmFsc2UsImlkeCI6Mn0seyJyMCI6Mi4yLCJkYXkiOjE4MCwiYWN0aXZlIjpmYWxzZSwiaWR4IjozfV0sInNlbGVjdHMiOlsiaW5mZWN0ZWQiLCJkZWFkIl19">detta resultat.</a>
-			Alltså <b>27437</b> (<i>30 ggr fler</i>) döda.
+			Vi tar standardinställningarna och tänker oss att <b>942</b> personer dött på dag <b>127</b>. Om man i det läget kommer fram till att situationen är oacceptabel och implementerar en teoretisk super-strategi som helt stoppar spridningen <b>(R0 = 0)</b> -
+			isåfall får vi <a target="_blank" href="https://covid19simulator.github.io/?settings=eyJpbnB1dHMiOnsicG9wdWxhdGlvbiI6MTAwMDAwMDAsInIwIjoxLjgsImF2Z0luZmVjdFRpbWUiOjYsIm1vcnRhbGl0eVdpdGhDYXJlIjowLjUsIm5lZWRSZXNwaXJhdG9yIjoyLCJuZWVkSW50dWJhdGlvbiI6NCwiYXZnVGltZVRvSW50dWJhdGlvbiI6MTgsImF2Z1RpbWVUb1Jlc3BpcmF0b3IiOjIwLCJhdmdUaW1lVG9EZWF0aCI6MjIsInJlc3BpcmF0b3JzIjo1NzAsImF2Z1Jlc3BpcmF0b3JEYXlzIjozLCJpbnR1YmF0aW9uU2xvdHMiOjEwMDAwLCJhdmdTdXJ2aXZvckludHViYXRpb25EYXlzIjoyfSwiYWN0aW9ucyI6W3sicjAiOjAsImRheSI6MTI3LCJhY3RpdmUiOnRydWUsImlkeCI6MH0seyJyMCI6MS44LCJkYXkiOjE0MCwiYWN0aXZlIjpmYWxzZSwiaWR4IjoxfSx7InIwIjoxLjgsImRheSI6MTgwLCJhY3RpdmUiOmZhbHNlLCJpZHgiOjJ9LHsicjAiOjEuOCwiZGF5IjoyMjAsImFjdGl2ZSI6ZmFsc2UsImlkeCI6M31dLCJzZWxlY3RzIjpbImluZmVjdGVkIiwiZGVhZCJdfQ==">detta resultat.</a>
+			Alltså <b>26303</b> (<i>28 ggr fler</i>) döda.
 		</p>
-		<h3>10 dagars fördröjning att agera kan ge 10 ggr fler dödsfall.</h3>
+		<h3>Korta fördröjning att agera flerdubblar dödligheten.</h3>
 		<p>
-			Ifall smittspridningen skulle stoppats på samma sätt som i första exemplet men <b>10</b> dagar tidigare, efter <b>81</b> dagar med <b>98</b> dödsfall – i så fall skulle resultatet
-			<a target="_blank" href="https://covid19simulator.github.io/?settings=eyJpbnB1dHMiOnsicG9wdWxhdGlvbiI6MTAwMDAwMDAsInIwIjoyLjIsImF2Z0luZmVjdFRpbWUiOjYsIm1vcnRhbGl0eVdpdGhDYXJlIjowLjUsIm5lZWRSZXNwaXJhdG9yIjoyLCJuZWVkSW50dWJhdGlvbiI6NCwiYXZnVGltZVRvSW50dWJhdGlvbiI6MTAsImF2Z1RpbWVUb1Jlc3BpcmF0b3IiOjE1LCJhdmdUaW1lVG9EZWF0aCI6MTgsInJlc3BpcmF0b3JzIjo1NzAsImF2Z1Jlc3BpcmF0b3JEYXlzIjoxMCwiaW50dWJhdGlvblNsb3RzIjoxNTAwMCwiYXZnU3Vydml2b3JJbnR1YmF0aW9uRGF5cyI6M30sImFjdGlvbnMiOlt7InIwIjoyLjIsImRheSI6NjAsImFjdGl2ZSI6ZmFsc2UsImlkeCI6MH0seyJyMCI6MCwiZGF5Ijo4MSwiYWN0aXZlIjp0cnVlLCJpZHgiOjF9LHsicjAiOjIuMiwiZGF5IjoxNDAsImFjdGl2ZSI6ZmFsc2UsImlkeCI6Mn0seyJyMCI6Mi4yLCJkYXkiOjE4MCwiYWN0aXZlIjpmYWxzZSwiaWR4IjozfV0sInNlbGVjdHMiOlsiaW5mZWN0ZWQiLCJkZWFkIl19">bli det här.</a>
-			Alltså <b>3653</b> dödsfall, och <b>~24000</b> människor skulle räddas.
+			Ifall smittspridningen skulle stoppats på samma sätt som i första exemplet men en vecka tidigare, på dag <b>120</b> med <b>368</b> dödsfall – i så fall skulle resultatet
+			<a target="_blank" href="https://covid19simulator.github.io/?settings=eyJpbnB1dHMiOnsicG9wdWxhdGlvbiI6MTAwMDAwMDAsInIwIjoxLjgsImF2Z0luZmVjdFRpbWUiOjYsIm1vcnRhbGl0eVdpdGhDYXJlIjowLjUsIm5lZWRSZXNwaXJhdG9yIjoyLCJuZWVkSW50dWJhdGlvbiI6NCwiYXZnVGltZVRvSW50dWJhdGlvbiI6MTgsImF2Z1RpbWVUb1Jlc3BpcmF0b3IiOjIwLCJhdmdUaW1lVG9EZWF0aCI6MjIsInJlc3BpcmF0b3JzIjo1NzAsImF2Z1Jlc3BpcmF0b3JEYXlzIjozLCJpbnR1YmF0aW9uU2xvdHMiOjEwMDAwLCJhdmdTdXJ2aXZvckludHViYXRpb25EYXlzIjoyfSwiYWN0aW9ucyI6W3sicjAiOjAsImRheSI6MTIwLCJhY3RpdmUiOnRydWUsImlkeCI6MH0seyJyMCI6MS44LCJkYXkiOjE0MCwiYWN0aXZlIjpmYWxzZSwiaWR4IjoxfSx7InIwIjoxLjgsImRheSI6MTgwLCJhY3RpdmUiOmZhbHNlLCJpZHgiOjJ9LHsicjAiOjEuOCwiZGF5IjoyMjAsImFjdGl2ZSI6ZmFsc2UsImlkeCI6M31dLCJzZWxlY3RzIjpbImluZmVjdGVkIiwiZGVhZCJdfQ==">bli det här.</a>
+			Alltså <b>8740</b> dödsfall.
 		</p>
 		<p>
 			I själva verket går det så klart inte att helt stoppa spridningen, vilket innebär att i verkligheten kan ännu fler människor dö av dessa fördröjningar
@@ -204,8 +232,9 @@
 		<p>
 			Koden med kommentarer går att se i din webbläsare (tryck F12) och finns även som open source här: <a target="_blank" href="https://github.com/covid19simulator/covid19simulator.github.io">https://github.com/covid19simulator/covid19simulator.github.io</a>
 		</p>
+		<h2>Kontakt</h2>
 		<p>
-
+			<a href="mailto:covid19simulator@outlook.com">covid19simulator@outlook.com</a>
 		</p>
 	</div>
 
