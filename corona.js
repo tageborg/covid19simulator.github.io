@@ -3,7 +3,7 @@ addEventListener("load", () => {
 const isMobile = () => innerWidth < 1000;
 
 const DEFAULTS = {
-	"population": 10000000,
+	"population": 10327589,
 	"r0": 1.8,
 	"avgInfectTime": 6,
 	"mortalityWithCare": 0.5,
