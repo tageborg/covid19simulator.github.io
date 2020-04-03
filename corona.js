@@ -31,6 +31,7 @@ const inputs = {
 	//days: { label: "Antal dagar", section: 'generic', isInteger: true },
 	population: { label: "Befolkning", section: 'generic', isInteger: true, min: 1 },
 	r0: { label: "Smittsamhet R0", section: 'generic', max: MAX_R0, step: 0.1 },
+	deadNow: { label: "Döda hittils", section: 'generic', isInteger: true, allowNull: true },
 	avgInfectTime: { label: "För att smitta annan", section: 'time', isInteger: true, min: 1 },
 	mortalityWithCare: { label: "Dödlighet (%) med intensivvård", section: 'mortality' ,max: 100 },
 	needRespirator: { label: "% som behöver respirator", section: 'mortality', max: 100 },
@@ -142,8 +143,12 @@ _.entries(sections).forEach(([sectionKey, section]) => {
 const setInputs = (values) => {
 	_.forOwn(values, (val, key) => {
 		if (window[key]) {
-			window[key].value = val.toString();
+			window[key].value = val == null ? '' : val.toString();
 		}
+	});
+	const toSetNull = _.pick(inputs, (v, k) => v.allowNull && !(k in values));
+	_.forOwn(toSetNull, (v, k) => {
+		window[key].value = null;
 	});
 };
 
@@ -200,10 +205,11 @@ setInputs(initSettings.inputs);
 let lastValidInputs = initSettings.inputs;
 let lastValidActions = initSettings.actions;
 
-let deadNow;
+let apiDeadNow;
 
 $.getJSON('https://services5.arcgis.com/fsYDFeRKu1hELJJs/arcgis/rest/services/FOHM_Covid_19_FME_1/FeatureServer/3/query?f=json&where=1%3D1&returnGeometry=false&spatialRel=esriSpatialRelIntersects&outFields=*&outStatistics=%5B%7B%22statisticType%22%3A%22sum%22%2C%22onStatisticField%22%3A%22Totalt_antal_avlidna%22%2C%22outStatisticFieldName%22%3A%22value%22%7D%5D&cacheHint=true', function(data) {
-	deadNow = data.features[0].attributes.value;
+	apiDeadNow = data.features[0].attributes.value;
+	deadNow.setAttribute('placeholder', apiDeadNow);
 	recalculate();
 });
 
@@ -218,23 +224,26 @@ const onChanged = () => {
 	const orgD = _.clone(d);
 	const orgActions = _.clone(newActions);
 
-	if(_.findIndex(_.values(d), (v) => v === undefined) >= 0) {
+	const mustBeSet = _.pickBy(d, (v, k) => !(inputs[k] || {}).allowNull);
+	if(_.findIndex(_.values(mustBeSet), (v) => v == null) >= 0) {
 		return reset();
 	}
 	_.forOwn(d, (val, key) => {
 		const settings = inputs[key];
 		let newVal = val;
-		if(settings.isInteger) {
-			newVal = Math.floor(newVal);
-		}
-		if(newVal < 0) {
-			newVal = 0;
-		}
-		if(settings.min && newVal < settings.min) {
-			newVal = settings.min;
-		}
-		if(settings.max && newVal > settings.max) {
-			newVal = settings.max;
+		if (newVal != null) {
+			if (settings.isInteger) {
+				newVal = Math.floor(newVal);
+			}
+			if (newVal < 0) {
+				newVal = 0;
+			}
+			if (settings.min && newVal < settings.min) {
+				newVal = settings.min;
+			}
+			if (settings.max && newVal > settings.max) {
+				newVal = settings.max;
+			}
 		}
 		d[key] = newVal;
 	});
@@ -526,7 +535,8 @@ const recalculate = () => {
 	}
 	let startIdx = _.findIndex(perDay, d => d.dead >= 1);
 	let endIdx = _.findLastIndex(perDay, d => d.newDead >= 1 || d.newInfections >= 10);
-	const deadIdx = deadNow ? _.findLastIndex(perDay, d => d.dead < deadNow) : 0;
+	const deadNowVal = d.deadNow == null ? apiDeadNow : d.deadNow;
+	const deadIdx = deadNowVal ? _.findLastIndex(perDay, d => d.dead < deadNowVal) : 0;
 	if(startIdx < 0 ) {
 		startIdx = 0;
 	}
