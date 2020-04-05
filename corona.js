@@ -114,9 +114,9 @@ actionsContainer.innerHTML = actions.map((obj, idx) => {
 			<span style="font-weight: bold; color: ${obj.color}">Åtgärd ${idx + 1}</span>
 			<div style="border-radius: 5px; border-style: solid; border-width: 1px; border-color: gray; width: min-content; padding: 5px; white-space: nowrap; background: white;">			
 				<label for="${name('r0')}">Smittsamhet efteråt</label><br>
-				<input step="0.1" min="0" max="${MAX_R0}" value="${DEFAULTS.r0}" type="number" id="${name('r0')}" name="${name('r0')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>
+				<input step="0.1" min="0" max="${MAX_R0}" value="${DEFAULTS.r0}" type="number" id="${name('r0')}" name="${name('r0')}" style="border-radius: 5px; max-width: 150px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>
 				<label for="${name('day')}">Dag för åtgärden</label><br>
-				<input step="1" min="0" value="${100 + (idx * 40)}" type="number" id="${name('day')}" name="${name('day')}" style="border-radius: 5px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>				
+				<input step="1" min="0" value="${100 + (idx * 40)}" type="number" id="${name('day')}" name="${name('day')}" style="border-radius: 5px; max-width: 150px; height: 20px; border-style: solid; border-width: 1px; border-color: gray; box-shadow: 2px 3px 9px 1px rgba(0, 0, 0, 0.2);"><br>				
 				<span style="font-weight: bold">Aktivera<span> <input type="checkbox" id="${name('active')}" name="${name('active')}" style=""><br>				
 			</div>
 		</div>
@@ -284,6 +284,9 @@ selects.map((__, idx) => {
 const resize = () => {
 	graphContainer.style.width = isMobile() ? '100%' : 'auto';
 	inputContainer.style.float = isMobile() ? 'none' : 'left';
+	Array.from(document.getElementsByClassName('btnCls')).forEach((btn) => {
+		btn.style.display = isMobile() ? 'inline-block' : 'block';
+	});
 	setTimeout(recalculate);
 };
 
@@ -296,6 +299,7 @@ class DayData
 }
 
 let chart;
+let aspectRatio;
 
 const drawDiagram = ({ prevData, data, firstDim, secondDim }) => {
 	const getDataArr = ({ field }) => {
@@ -328,7 +332,12 @@ const drawDiagram = ({ prevData, data, firstDim, secondDim }) => {
 		}]
 	};
 
-	const aspectRatio = isMobile() ? 1.5 : 2.5;
+	const oldAspectRatio = aspectRatio;
+	aspectRatio = isMobile() ? 1.2 : 2.5;
+	if(oldAspectRatio && aspectRatio !== oldAspectRatio && chart) {
+		chart.destroy();
+		chart = null;
+	}
 
 	options = {
 		responsive: true,
